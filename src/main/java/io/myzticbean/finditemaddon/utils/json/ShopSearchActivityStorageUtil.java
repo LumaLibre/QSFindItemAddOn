@@ -43,14 +43,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -184,13 +177,16 @@ public class ShopSearchActivityStorageUtil {
 
     public static void loadShopsFromFile() {
         Gson gson = new GsonBuilder().create();
-        File file = new File(FindItemAddOn.getInstance().getDataFolder().getAbsolutePath() + "/" + SHOP_SEARCH_ACTIVITY_JSON_FILE_NAME);
+        File file = new File(getShopJsonFilePath());
         if(file.exists()) {
             try {
                 Reader reader = new FileReader(file);
-                ShopSearchActivityModel[] h = gson.fromJson(reader, ShopSearchActivityModel[].class);
-                if(h != null) {
-                    globalShopsList = new ArrayList<>(Arrays.asList(h));
+                ShopSearchActivityModel[] shopsArray = gson.fromJson(reader, ShopSearchActivityModel[].class);
+                if(shopsArray != null) {
+                    // Filter out any null elements from the array
+                    globalShopsList = Arrays.stream(shopsArray)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList());
                 }
                 else {
                     globalShopsList = new ArrayList<>();
@@ -205,7 +201,7 @@ public class ShopSearchActivityStorageUtil {
 
     public static void saveShopsToFile() {
         Gson gson = new GsonBuilder().create();
-        File file = new File(FindItemAddOn.getInstance().getDataFolder().getAbsolutePath() + "/" + SHOP_SEARCH_ACTIVITY_JSON_FILE_NAME);
+        File file = new File(getShopJsonFilePath());
         file.getParentFile().mkdir();
         try {
             file.createNewFile();
@@ -217,6 +213,12 @@ public class ShopSearchActivityStorageUtil {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static @NotNull String getShopJsonFilePath() {
+        String path = FindItemAddOn.getInstance().getDataFolder().getAbsolutePath() + File.separator + SHOP_SEARCH_ACTIVITY_JSON_FILE_NAME;
+        Logger.logDebugInfo("shops.json file path: " + path);
+        return path;
     }
 
     public static void migrateHiddenShopsToShopsJson() {

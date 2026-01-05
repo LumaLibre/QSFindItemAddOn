@@ -322,7 +322,7 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
         for (ShopSearchActivityModel shop_temp : tempGlobalShopsList) {
             ShopSearchActivityModel tempShopToRemove = null;
             for (ShopSearchActivityModel shop_global : globalShopsList) {
-                if (shop_temp.getWorldName().equalsIgnoreCase(shop_global.getWorldName())
+                if (shop_global != null && shop_temp.getWorldName().equalsIgnoreCase(shop_global.getWorldName())
                         && shop_temp.getX() == shop_global.getX()
                         && shop_temp.getY() == shop_global.getY()
                         && shop_temp.getZ() == shop_global.getZ()

@@ -5,6 +5,10 @@
 - Changed logger statements to show Main/Async thread state
 - Changed materials list in `LocationUtils` from `ArrayList` to `HashSet` to improve performance
 - Added debug mode control via command: `/finditemadmin debug-mode {enable | disable}`
+- Bumped Paper API version to `1.21.11-R0.1-SNAPSHOT`
+
+### Bug fixes
+- Fixed a bug during loadShopsFromFile if one of the loaded shops was null by adding a null check
 
 ## Release 2.0.7.7
 ### Changes
