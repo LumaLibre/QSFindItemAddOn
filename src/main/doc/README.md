@@ -24,10 +24,6 @@ Adds a `/finditem` command in game for searching through all the shops on the se
 - Support for world blacklisting (Shops in blacklisted worlds are ignored in the search result)
 - Support for material blacklisting that prevents players for searching for specific items
 
-
-**QuickShop-Hikari Support**
-- It supports both [QuickShop-Hikari](https://www.spigotmc.org/resources/100125/) and [QuickShop-Reremake](https://www.spigotmc.org/resources/62575/).
-
 **Hexcode color support**
 - All messages in the config.yml support hexcodes.
 
@@ -55,11 +51,9 @@ command-alias: []
 >Check out the sample config.yml [here](https://github.com/myzticbean/QSFindItemAddOn/wiki/Sample-config.yml).
 
 ## Requires
-- [QuickShop-Hikari](https://www.spigotmc.org/resources/100125/) v6.0 or higher
+- [QuickShop-Hikari](https://www.spigotmc.org/resources/100125/) v6.2.0.11 or higher
 
-**OR**
-
-- [QuickShop Reremake](https://www.spigotmc.org/resources/62575/) 5.1 or higher (Use add-on v1.7 for QuickShop version 4.0.*)
+**Note:** [QuickShop Reremake](https://www.spigotmc.org/resources/62575/) support has been dropped completely.
 
 ## Assumptions
 - A compatible economy plugin is installed
