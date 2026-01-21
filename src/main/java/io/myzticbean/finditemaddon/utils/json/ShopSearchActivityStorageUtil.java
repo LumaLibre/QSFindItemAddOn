@@ -193,7 +193,7 @@ public class ShopSearchActivityStorageUtil {
                 }
                 Logger.logInfo("Loaded shops from file");
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                Logger.logError("Failed to load shops from file", e);
             }
         }
         globalShopsList = FindItemAddOn.getQsApiInstance().syncShopsListForStorage(globalShopsList);
@@ -211,7 +211,7 @@ public class ShopSearchActivityStorageUtil {
             writer.close();
             Logger.logInfo("Saved shops to file");
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.logError("Failed to save shops to file", e);
         }
     }
 

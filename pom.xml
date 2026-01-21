@@ -6,7 +6,7 @@
 
     <groupId>io.myzticbean.finditemaddon</groupId>
     <artifactId>QSFindItemAddOn</artifactId>
-    <version>2.0.8.0-SNAPSHOT-260105</version>
+    <version>2.0.8.0-SNAPSHOT-260121</version>
     <packaging>jar</packaging>
 
     <name>QSFindItemAddOn</name>
@@ -18,7 +18,7 @@
         <spigot.version>1.21.8-R0.1-SNAPSHOT</spigot.version>
         <paper-api.version>1.21.11-R0.1-SNAPSHOT</paper-api.version>
 <!--        <qs-hikari.version>6.2.0.10</qs-hikari.version>-->
-        <qs-hikari.version>6.2.0.11-SNAPSHOT-11</qs-hikari.version>
+        <qs-hikari.version>6.2.0.11-SNAPSHOT-14</qs-hikari.version>
         <playerwarps-api-old>6.30.0</playerwarps-api-old>
         <playerwarps-api-new>7.7.1</playerwarps-api-new>
         <essentialsx.version>2.21.1</essentialsx.version>

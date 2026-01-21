@@ -172,7 +172,7 @@ public final class FindItemAddOn extends JavaPlugin {
             ShopSearchActivityStorageUtil.saveShopsToFile();
         }
         else if(!ENABLE_TRIAL_PERIOD) {
-            Logger.logError("Uh oh! Looks like either this plugin has crashed or you don't have QuickShop-Hikari or QuickShop-Reremake installed.");
+            Logger.logError("Uh oh! Looks like either this plugin has crashed or you don't have QuickShop-Hikari installed.");
         }
         VirtualThreadScheduler.shutdown();
         Logger.logInfo("Bye!");
@@ -182,20 +182,19 @@ public final class FindItemAddOn extends JavaPlugin {
         serverVersion = Bukkit.getServer().getVersion();
         Logger.logInfo("Server version found: " + serverVersion);
 
-        if(!isQSReremakeInstalled() && !isQSHikariInstalled()) {
+        if(!isQSHikariInstalled()) {
             Logger.logError("QuickShop-Hikari is required to use this addon. Please install QuickShop and try again!");
-//            Logger.logError("Both QuickShop-Hikari and QuickShop-Reremake are supported by this addon.");
             Logger.logError("Download link:");
             Logger.logError("» QuickShop-Hikari: https://www.spigotmc.org/resources/100125");
-//            Logger.logError("» QuickShop-Reremake (No official support): https://www.spigotmc.org/resources/62575");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        else if(isQSReremakeInstalled()) {
-            Logger.logInfo("Found QuickShop-Reremake");
-            qsApi = new QSReremakeAPIHandler();
-            qsApi.registerSubCommand();
-        } else {
+//        else if(isQSReremakeInstalled()) {
+//            Logger.logInfo("Found QuickShop-Reremake");
+//            qsApi = new QSReremakeAPIHandler();
+//            qsApi.registerSubCommand();
+//        }
+        else {
             Logger.logInfo("Found QuickShop-Hikari");
             qsApi = new QSHikariAPIHandler();
             qsApi.registerSubCommand();
