@@ -304,8 +304,8 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
         // copy all shops from shops list in API to a temp globalShopsList
         // now check shops from temp globalShopsList in current globalShopsList and pull playerVisit data
         List<ShopSearchActivityModel> tempGlobalShopsList = new ArrayList<>();
-        for (Shop shop_i : getAllShops()) {
-            Location shopLoc = shop_i.getLocation();
+        getAllShops().forEach(shopItem -> {
+            Location shopLoc = shopItem.getLocation();
             tempGlobalShopsList.add(new ShopSearchActivityModel(
                     shopLoc.getWorld().getName(),
                     shopLoc.getX(),
@@ -313,21 +313,21 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
                     shopLoc.getZ(),
                     shopLoc.getPitch(),
                     shopLoc.getYaw(),
-                    convertQUserToUUID(shop_i.getOwner()).toString(),
+                    convertQUserToUUID(shopItem.getOwner()).toString(),
                     new ArrayList<>(),
                     false
             ));
-        }
+        });
 
         for (ShopSearchActivityModel shop_temp : tempGlobalShopsList) {
             ShopSearchActivityModel tempShopToRemove = null;
             for (ShopSearchActivityModel shop_global : globalShopsList) {
-                if (shop_global != null && shop_temp.getWorldName().equalsIgnoreCase(shop_global.getWorldName())
+                if (shop_global != null
+                        && shop_temp.getWorldName().equalsIgnoreCase(shop_global.getWorldName())
                         && shop_temp.getX() == shop_global.getX()
                         && shop_temp.getY() == shop_global.getY()
                         && shop_temp.getZ() == shop_global.getZ()
-                        && shop_temp.getShopOwnerUUID().equalsIgnoreCase(shop_global.getShopOwnerUUID())
-                ) {
+                        && shop_temp.getShopOwnerUUID().equalsIgnoreCase(shop_global.getShopOwnerUUID())) {
                     shop_temp.setPlayerVisitList(shop_global.getPlayerVisitList());
                     shop_temp.setHiddenFromSearch(shop_global.isHiddenFromSearch());
                     tempShopToRemove = shop_global;

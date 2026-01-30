@@ -6,6 +6,11 @@
 - Changed materials list in `LocationUtils` from `ArrayList` to `HashSet` to improve performance
 - Added debug mode control via command: `/finditemadmin debug-mode {enable | disable}`
 - Bumped Paper API version to `1.21.11-R0.1-SNAPSHOT`
+- Bumped Kyori's `adventure-api` to 4.26.1
+- Bumped `worldguard-bukkit` to 7.0.14
+- Bumped `playerwarps-api` to 7.9.0
+- Removed Spigot API dependency
+- Bumped `Quickshop-Hikari` to 6.2.0.11-RELEASE-CANDIDATE-2
 
 ### Bug fixes
 - Fixed a bug during loadShopsFromFile if one of the loaded shops was null by adding a null check
