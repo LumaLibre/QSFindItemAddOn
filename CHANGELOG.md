@@ -10,7 +10,7 @@
 - Bumped `worldguard-bukkit` to 7.0.14
 - Bumped `playerwarps-api` to 7.9.0
 - Removed Spigot API dependency
-- Bumped `Quickshop-Hikari` to 6.2.0.11-RELEASE-CANDIDATE-2
+- Bumped `Quickshop-Hikari` to 6.2.0.11
 
 ### Bug fixes
 - Fixed a bug during loadShopsFromFile if one of the loaded shops was null by adding a null check
