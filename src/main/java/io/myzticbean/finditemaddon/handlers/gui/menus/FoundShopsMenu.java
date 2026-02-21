@@ -20,26 +20,25 @@ package io.myzticbean.finditemaddon.handlers.gui.menus;
 
 import com.bekvon.bukkit.residence.protection.ClaimedResidence;
 import com.olziedev.playerwarps.api.warp.Warp;
+import io.myzticbean.finditemaddon.FindItemAddOn;
 import io.myzticbean.finditemaddon.config.ConfigProvider;
 import io.myzticbean.finditemaddon.dependencies.EssentialsXPlugin;
 import io.myzticbean.finditemaddon.dependencies.PlayerWarpsPlugin;
 import io.myzticbean.finditemaddon.dependencies.ResidencePlugin;
 import io.myzticbean.finditemaddon.dependencies.WGPlugin;
-import io.myzticbean.finditemaddon.FindItemAddOn;
 import io.myzticbean.finditemaddon.handlers.gui.PaginatedMenu;
 import io.myzticbean.finditemaddon.handlers.gui.PlayerMenuUtility;
 import io.myzticbean.finditemaddon.models.FoundShopItemModel;
 import io.myzticbean.finditemaddon.models.enums.CustomCmdPlaceholdersEnum;
 import io.myzticbean.finditemaddon.models.enums.PlayerPermsEnum;
 import io.myzticbean.finditemaddon.models.enums.ShopLorePlaceholdersEnum;
-import io.myzticbean.finditemaddon.utils.json.ShopSearchActivityStorageUtil;
 import io.myzticbean.finditemaddon.utils.LocationUtils;
+import io.myzticbean.finditemaddon.utils.json.ShopSearchActivityStorageUtil;
 import io.myzticbean.finditemaddon.utils.log.Logger;
 import io.myzticbean.finditemaddon.utils.warp.EssentialWarpsUtil;
 import io.myzticbean.finditemaddon.utils.warp.PlayerWarpsUtil;
 import io.myzticbean.finditemaddon.utils.warp.ResidenceUtils;
 import io.myzticbean.finditemaddon.utils.warp.WGRegionUtils;
-import io.papermc.lib.PaperLib;
 import me.kodysimpson.simpapi.colors.ColorTranslator;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
@@ -225,7 +224,7 @@ public class FoundShopsMenu extends PaginatedMenu {
         if (shouldApplyTeleportDelay(player)) {
             applyTeleportDelay(player, locToTeleport);
         } else {
-            PaperLib.teleportAsync(player, locToTeleport, PlayerTeleportEvent.TeleportCause.PLUGIN);
+            FindItemAddOn.getScheduler().teleportAsync(player, locToTeleport, PlayerTeleportEvent.TeleportCause.PLUGIN);
         }
     }
 
@@ -335,9 +334,8 @@ public class FoundShopsMenu extends PaginatedMenu {
             player.sendMessage(ColorTranslator.translateColorCodes(
                     configProvider.PLUGIN_PREFIX + replaceDelayPlaceholder(tpDelayMsg, delay)));
         }
-        Bukkit.getScheduler().scheduleSyncDelayedTask(
-                FindItemAddOn.getInstance(),
-                () -> PaperLib.teleportAsync(player, locToTeleport, PlayerTeleportEvent.TeleportCause.PLUGIN),
+        FindItemAddOn.getScheduler().runLaterAsync(
+                () -> FindItemAddOn.getScheduler().teleportAsync(player, locToTeleport, PlayerTeleportEvent.TeleportCause.PLUGIN),
                 delay * 20);
     }
 

@@ -18,8 +18,8 @@
  */
 package io.myzticbean.finditemaddon.handlers.command;
 
-import io.myzticbean.finditemaddon.config.ConfigSetup;
 import io.myzticbean.finditemaddon.FindItemAddOn;
+import io.myzticbean.finditemaddon.config.ConfigSetup;
 import io.myzticbean.finditemaddon.handlers.gui.menus.FoundShopsMenu;
 import io.myzticbean.finditemaddon.models.FoundShopItemModel;
 import io.myzticbean.finditemaddon.models.enums.PlayerPermsEnum;
@@ -82,7 +82,7 @@ public class CmdExecutorHandler {
             // If QS Hikari installed and Shop Cache feature available (>6), then run in async thread (Fix for Issue #12)
             if(!FindItemAddOn.isQSReremakeInstalled() && FindItemAddOn.getQsApiInstance().isQSShopCacheImplemented()) {
                 Logger.logDebugInfo("Should run in async thread...");
-                Bukkit.getScheduler().runTaskAsynchronously(FindItemAddOn.getInstance(), () -> {
+                FindItemAddOn.getScheduler().runAsync((t) -> {
                     List<FoundShopItemModel> searchResultList = FindItemAddOn.getQsApiInstance().fetchAllItemsFromAllShops(isBuying, player);
                     this.openShopMenu(player, searchResultList, true, FindItemAddOn.getConfigProvider().NO_SHOP_FOUND_MSG);
                 });
@@ -136,7 +136,7 @@ public class CmdExecutorHandler {
     private void openShopMenu(Player player, List<FoundShopItemModel> searchResultList, boolean synchronize, String errorMsg) {
         if (!searchResultList.isEmpty()) {
             if (synchronize) {
-                Bukkit.getScheduler().runTask(FindItemAddOn.getInstance(), () -> {
+                FindItemAddOn.getScheduler().runAtEntity(player, (t) -> {
                     FoundShopsMenu menu = new FoundShopsMenu(FindItemAddOn.getPlayerMenuUtility(player), searchResultList);
                     menu.open(searchResultList);
                 });

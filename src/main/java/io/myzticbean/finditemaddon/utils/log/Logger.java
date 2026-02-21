@@ -57,6 +57,12 @@ public class Logger {
     }
 
     private static String getMainOrAsyncThreadLogText() {
+        if (FindItemAddOn.getFoliaLib().isFolia()) {
+            if (!Bukkit.isPrimaryThread()) {
+                return "[ASYNC] ";
+            }
+            return FindItemAddOn.getScheduler().isGlobalTickThread() ? "[GLOBAL] " : "[MAIN] ";
+        }
         return Bukkit.isPrimaryThread() ? "[MAIN] " : "[ASYNC] ";
     }
 }

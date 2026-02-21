@@ -18,6 +18,8 @@
  */
 package io.myzticbean.finditemaddon;
 
+import com.tcoded.folialib.FoliaLib;
+import com.tcoded.folialib.impl.PlatformScheduler;
 import io.myzticbean.finditemaddon.commands.simpapi.BuySubCmd;
 import io.myzticbean.finditemaddon.commands.simpapi.HideShopSubCmd;
 import io.myzticbean.finditemaddon.commands.simpapi.ReloadSubCmd;
@@ -25,29 +27,29 @@ import io.myzticbean.finditemaddon.commands.simpapi.RevealShopSubCmd;
 import io.myzticbean.finditemaddon.commands.simpapi.SellSubCmd;
 import io.myzticbean.finditemaddon.config.ConfigProvider;
 import io.myzticbean.finditemaddon.config.ConfigSetup;
+import io.myzticbean.finditemaddon.dependencies.BentoBoxPlugin;
 import io.myzticbean.finditemaddon.dependencies.EssentialsXPlugin;
 import io.myzticbean.finditemaddon.dependencies.PlayerWarpsPlugin;
 import io.myzticbean.finditemaddon.dependencies.ResidencePlugin;
 import io.myzticbean.finditemaddon.dependencies.WGPlugin;
-import io.myzticbean.finditemaddon.dependencies.BentoBoxPlugin;
 import io.myzticbean.finditemaddon.handlers.gui.PlayerMenuUtility;
 import io.myzticbean.finditemaddon.listeners.*;
-import io.myzticbean.finditemaddon.metrics.Metrics;
+import io.myzticbean.finditemaddon.models.enums.PlayerPermsEnum;
 import io.myzticbean.finditemaddon.quickshop.QSApi;
 import io.myzticbean.finditemaddon.quickshop.impl.QSHikariAPIHandler;
 import io.myzticbean.finditemaddon.quickshop.impl.QSReremakeAPIHandler;
 import io.myzticbean.finditemaddon.scheduledtasks.Task15MinInterval;
-import io.myzticbean.finditemaddon.models.enums.PlayerPermsEnum;
+import io.myzticbean.finditemaddon.utils.UpdateChecker;
 import io.myzticbean.finditemaddon.utils.async.VirtualThreadScheduler;
 import io.myzticbean.finditemaddon.utils.json.ShopSearchActivityStorageUtil;
 import io.myzticbean.finditemaddon.utils.log.Logger;
-import io.myzticbean.finditemaddon.utils.UpdateChecker;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import me.kodysimpson.simpapi.colors.ColorTranslator;
 import me.kodysimpson.simpapi.command.CommandManager;
 import me.kodysimpson.simpapi.command.SubCommand;
 import org.apache.commons.lang3.StringUtils;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -75,6 +77,8 @@ public final class FindItemAddOn extends JavaPlugin {
     // ************************************************************************************
 
     private static Plugin pluginInstance;
+    @Getter
+    private static FoliaLib foliaLib;
 
     public FindItemAddOn() {
         pluginInstance = this;
@@ -82,6 +86,10 @@ public final class FindItemAddOn extends JavaPlugin {
 
     public static Plugin getInstance() {
         return pluginInstance;
+    }
+
+    public static PlatformScheduler getScheduler() {
+        return foliaLib.getScheduler();
     }
 
     public static String serverVersion;
@@ -108,6 +116,7 @@ public final class FindItemAddOn extends JavaPlugin {
 
     @Override
     public void onLoad() {
+        foliaLib = new FoliaLib(this);
         Logger.logInfo("A Shop Search AddOn for QuickShop developed by myzticbean");
 
         // Show warning if it's a snapshot build
@@ -161,7 +170,7 @@ public final class FindItemAddOn extends JavaPlugin {
         initCommands();
 
         // Run plugin startup logic after server is done loading
-        Bukkit.getScheduler().scheduleSyncDelayedTask(FindItemAddOn.getInstance(), this::runPluginStartupTasks);
+        FindItemAddOn.getScheduler().runNextTick(t -> this.runPluginStartupTasks());
     }
 
     @Override
@@ -218,7 +227,7 @@ public final class FindItemAddOn extends JavaPlugin {
 
         // Initiate batch tasks
         Logger.logInfo("Registering tasks");
-        Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Task15MinInterval(), 0, REPEATING_TASK_SCHEDULE_MINS);
+        FindItemAddOn.getScheduler().runTimerAsync(new Task15MinInterval(), 0, REPEATING_TASK_SCHEDULE_MINS);
 
         // init metrics
         Logger.logInfo("Registering anonymous bStats metrics");
