@@ -46,6 +46,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -119,7 +120,13 @@ public class QSHikariAPIHandler implements QSApi<QuickShop, Shop> {
         double itemAmount = shop.getItem().getAmount();
         double pricePerTransaction = price * itemAmount;
 
-        var economy = getQuickShop().getEconomy();
+        var economy = getQuickShop().getEconomyManager().provider();
+
+        if (economy == null) {
+            Logger.logError("Economy provider not found!");
+            return false;
+        }
+
         var qUser = shop.getOwner();
         var uuid = qUser.getUniqueIdIfRealPlayer().orElse(null);
         // return true if not a real player
@@ -135,7 +142,7 @@ public class QSHikariAPIHandler implements QSApi<QuickShop, Shop> {
         var currency = shop.getCurrency();
 
         // Get owner's balance through QuickShop API
-        return economy.getBalance(qUser, world, currency) >= pricePerTransaction;
+        return economy.balance(qUser, world.getName(), currency).compareTo(BigDecimal.valueOf(pricePerTransaction)) >= 0;
     }
 
     private static QuickShop getQuickShop() {
@@ -428,7 +435,7 @@ public class QSHikariAPIHandler implements QSApi<QuickShop, Shop> {
     private void testQuickShopHikariExternalCache(Shop shop) throws RuntimeException {
         boolean fetchRemainingStock = false;
         long shopId = shop.getShopId();
-        try (SQLQuery query = DataTables.EXTERNAL_CACHE.createQuery()
+        try (var query = DataTables.EXTERNAL_CACHE.createQuery()
                 .addCondition("shop", shopId)
                 .selectColumns("space", "stock")
                 .setLimit(1)
