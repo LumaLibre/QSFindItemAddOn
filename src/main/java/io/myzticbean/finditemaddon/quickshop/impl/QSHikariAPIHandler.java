@@ -213,8 +213,13 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
         double itemAmount = shop.getItem().getAmount();
         double pricePerTransaction = price * itemAmount;
 
-//        var economy = getQuickShop().getEconomy();
         var economy = getQuickShop().getEconomyManager().provider();
+
+        if (economy == null) {
+            Logger.logError("Economy provider not found!");
+            return false;
+        }
+
         var qUser = shop.getOwner();
         var uuid = qUser.getUniqueIdIfRealPlayer().orElse(null);
         // return true if not a real player
@@ -230,9 +235,7 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
         var currency = shop.getCurrency();
 
         // Get owner's balance through QuickShop API
-//        return economy.getBalance(qUser, world, currency) >= pricePerTransaction;
-        BigDecimal balance = economy.balance(qUser, world.getName(), currency);
-        return balance.compareTo(BigDecimal.valueOf(pricePerTransaction)) >= 0;
+        return economy.balance(qUser, world.getName(), currency).compareTo(BigDecimal.valueOf(pricePerTransaction)) >= 0;
     }
 
     private static QuickShop getQuickShop() {

@@ -67,7 +67,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
+                <version>3.6.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -76,6 +76,16 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.tcoded.folialib</pattern>
+                                    <shadedPattern>io.myzticbean.finditemaddon.shaded.folialib</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.bstats</pattern>
+                                    <shadedPattern>io.myzticbean.finditemaddon.shaded.metrics</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -168,6 +178,10 @@
             <id>bentoboxworld</id>
             <url>https://repo.codemc.io/repository/bentoboxworld/</url>
         </repository>
+        <repository>
+            <id>tcoded-releases</id>
+            <url>https://repo.tcoded.com/releases</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -190,9 +204,15 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>io.papermc</groupId>
-            <artifactId>paperlib</artifactId>
-            <version>1.0.7</version>
+            <groupId>com.tcoded</groupId>
+            <artifactId>FoliaLib</artifactId>
+            <version>0.5.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.bstats</groupId>
+            <artifactId>bstats-bukkit</artifactId>
+            <version>3.1.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -313,7 +333,7 @@
         <dependency>
             <groupId>com.sk89q.worldguard</groupId>
             <artifactId>worldguard-bukkit</artifactId>
-            <version>${worldguard-bukkit.version}</version>
+            <version>7.0.7</version>
             <scope>provided</scope>
             <exclusions>
                 <exclusion>
@@ -417,7 +437,7 @@
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-api</artifactId>
-            <version>4.26.1</version>
+            <version>4.16.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -438,6 +458,13 @@
             <artifactId>GriefPrevention</artifactId>
             <version>16.18.4</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>me.ryanhamshire</groupId>
+            <artifactId>GPFlags</artifactId>
+            <version>5.13.4</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/GPFlags-5.13.4.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>world.bentobox</groupId>
