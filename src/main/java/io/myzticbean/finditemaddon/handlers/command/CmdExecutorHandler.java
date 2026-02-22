@@ -18,8 +18,8 @@
  */
 package io.myzticbean.finditemaddon.handlers.command;
 
-import io.myzticbean.finditemaddon.config.ConfigSetup;
 import io.myzticbean.finditemaddon.FindItemAddOn;
+import io.myzticbean.finditemaddon.config.ConfigSetup;
 import io.myzticbean.finditemaddon.handlers.gui.menus.FoundShopsMenu;
 import io.myzticbean.finditemaddon.models.FoundShopItemModel;
 import io.myzticbean.finditemaddon.models.enums.PlayerPermsEnum;
@@ -395,7 +395,7 @@ public class CmdExecutorHandler {
             }
         });
     }
-    
+
     public String getPluginPrefix() {
         return FindItemAddOn.getConfigProvider().PLUGIN_PREFIX;
     }

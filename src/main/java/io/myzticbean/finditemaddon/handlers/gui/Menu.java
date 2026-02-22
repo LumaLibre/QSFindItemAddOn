@@ -21,6 +21,7 @@ package io.myzticbean.finditemaddon.handlers.gui;
 import io.myzticbean.finditemaddon.FindItemAddOn;
 import io.myzticbean.finditemaddon.models.FoundShopItemModel;
 import io.myzticbean.finditemaddon.utils.log.Logger;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -29,7 +30,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -157,8 +157,8 @@ public abstract class Menu implements InventoryHolder {
      */
     public void open(List<FoundShopItemModel> foundShops) {
         if (playerMenuUtility.getOwner() == null) return;
-        Bukkit.getScheduler().runTask(FindItemAddOn.getInstance(), () -> {
-            inventory = Bukkit.createInventory(this, getSlots(), getMenuName());
+        FindItemAddOn.getScheduler().runAtEntity(playerMenuUtility.getOwner(), (t) -> {
+            inventory = Bukkit.createInventory(this, getSlots(), LegacyComponentSerializer.legacyAmpersand().deserialize(getMenuName()));
             this.setMenuItems(foundShops);
             playerMenuUtility.getOwner().openInventory(inventory);
         });
