@@ -18,7 +18,6 @@
  */
 package io.myzticbean.finditemaddon.listeners;
 
-import io.myzticbean.finditemaddon.FindItemAddOn;
 import io.myzticbean.finditemaddon.utils.UpdateChecker;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

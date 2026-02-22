@@ -18,9 +18,9 @@
  */
 package io.myzticbean.finditemaddon.utils.warp;
 
+import io.myzticbean.finditemaddon.FindItemAddOn;
 import io.myzticbean.finditemaddon.dependencies.EssentialsXPlugin;
 import io.myzticbean.finditemaddon.dependencies.PlayerWarpsPlugin;
-import io.myzticbean.finditemaddon.FindItemAddOn;
 import lombok.experimental.UtilityClass;
 
 /**
