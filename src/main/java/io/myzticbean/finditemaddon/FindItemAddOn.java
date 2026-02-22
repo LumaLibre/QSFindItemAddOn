@@ -38,7 +38,6 @@ import io.myzticbean.finditemaddon.listeners.*;
 import io.myzticbean.finditemaddon.models.enums.PlayerPermsEnum;
 import io.myzticbean.finditemaddon.quickshop.QSApi;
 import io.myzticbean.finditemaddon.quickshop.impl.QSHikariAPIHandler;
-import io.myzticbean.finditemaddon.quickshop.impl.QSReremakeAPIHandler;
 import io.myzticbean.finditemaddon.scheduledtasks.Task15MinInterval;
 import io.myzticbean.finditemaddon.utils.UpdateChecker;
 import io.myzticbean.finditemaddon.utils.async.VirtualThreadScheduler;

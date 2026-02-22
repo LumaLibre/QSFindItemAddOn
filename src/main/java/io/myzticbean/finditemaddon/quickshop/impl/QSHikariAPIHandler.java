@@ -188,7 +188,7 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
      */
     private CompletableFuture<Boolean> permissionCheckFuture(Player searchingPlayer, Shop shopIterator) {
         CompletableFuture<Boolean> permissionCheckFuture = new CompletableFuture<>();
-        Bukkit.getScheduler().runTask(FindItemAddOn.getInstance(), () -> {
+        FindItemAddOn.getScheduler().runAtEntity(searchingPlayer, (t) -> {
             try {
                 permissionCheckFuture.complete(shopIterator.playerAuthorize(searchingPlayer.getUniqueId(), BuiltInShopPermission.SEARCH));
             } catch (Exception e) {
