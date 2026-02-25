@@ -44,6 +44,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -57,7 +58,7 @@ public class ShopSearchActivityStorageUtil {
     private static final Map<String, Long> cooldowns = new HashMap<>();
 
     @Getter
-    private static List<ShopSearchActivityModel> globalShopsList = new ArrayList<>();
+    private static List<ShopSearchActivityModel> globalShopsList = new CopyOnWriteArrayList<>();
 
     /**
      * Returns true if cooldown is not present
