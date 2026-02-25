@@ -161,19 +161,12 @@ public class ShopSearchActivityStorageUtil {
      * @param shop
      */
     public static void removeShop(com.ghostchu.quickshop.api.shop.Shop shop) {
-        Iterator<ShopSearchActivityModel> shopSearchActivityIterator = globalShopsList.iterator();
-        while(shopSearchActivityIterator.hasNext()) {
-            ShopSearchActivityModel shopSearchActivity = shopSearchActivityIterator.next();
-            if(shopSearchActivity.compareWith(
-                    shop.getLocation().getWorld().getName(),
-                    shop.getLocation().getX(),
-                    shop.getLocation().getY(),
-                    shop.getLocation().getZ()
-            )) {
-                shopSearchActivityIterator.remove();
-                return;
-            }
-        }
+        globalShopsList.removeIf(shopSearchActivity -> shopSearchActivity.compareWith(
+                shop.getLocation().getWorld().getName(),
+                shop.getLocation().getX(),
+                shop.getLocation().getY(),
+                shop.getLocation().getZ()
+        ));
     }
 
     public static void loadShopsFromFile() {
@@ -187,10 +180,10 @@ public class ShopSearchActivityStorageUtil {
                     // Filter out any null elements from the array
                     globalShopsList = Arrays.stream(shopsArray)
                             .filter(Objects::nonNull)
-                            .collect(Collectors.toList());
+                            .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
                 }
                 else {
-                    globalShopsList = new ArrayList<>();
+                    globalShopsList = new CopyOnWriteArrayList<>();
                 }
                 Logger.logInfo("Loaded shops from file");
             } catch (FileNotFoundException e) {
