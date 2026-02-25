@@ -18,7 +18,6 @@
  */
 package io.myzticbean.finditemaddon.quickshop;
 
-import io.myzticbean.finditemaddon.FindItemAddOn;
 import io.myzticbean.finditemaddon.models.FoundShopItemModel;
 import io.myzticbean.finditemaddon.models.ShopSearchActivityModel;
 import io.myzticbean.finditemaddon.utils.log.Logger;
@@ -27,6 +26,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -35,56 +35,58 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Interface for QS API.
  * Implement it depending on which API is being used (Reremake/Hikari).
- * @param <QSType>
- * @param <Shop>
+ * @param <Q> QS Instance
+ * @param <S> Shop instance
  * @author myzticbean
  */
-public interface QSApi<QSType, Shop> {
+public interface QSApi<Q, S> {
 
     String QS_TOTAL_SHOPS_ON_SERVER = "Total shops on server: ";
     String QS_REMAINING_STOCK_OR_SPACE = "Remaining Stock/Space: ";
 
     /**
      * Search based on Item Type from all server shops
-     * @param item
-     * @param toBuy
-     * @param searchingPlayer
-     * @return
+     * @param item Item
+     * @param toBuy To buy or sell
+     * @param searchingPlayer the searching player
+     * @return CompletableFuture<List<FoundShopItemModel>>
      */
-    List<FoundShopItemModel> findItemBasedOnTypeFromAllShops(ItemStack item, boolean toBuy, Player searchingPlayer);
+    CompletableFuture<List<FoundShopItemModel>> findItemBasedOnTypeFromAllShops(ItemStack item, boolean toBuy, Player searchingPlayer);
 
     /**
      * Search based on display name of item from all server shops
-     * @param displayName
-     * @param toBuy
-     * @param searchingPlayer
-     * @return
+     * @param displayName display name
+     * @param toBuy to buy or sell
+     * @param searchingPlayer the searching player
+     * @return CompletableFuture<List<FoundShopItemModel>>
      */
-    List<FoundShopItemModel> findItemBasedOnDisplayNameFromAllShops(String displayName, boolean toBuy, Player searchingPlayer);
+    CompletableFuture<List<FoundShopItemModel>> findItemBasedOnDisplayNameFromAllShops(String displayName, boolean toBuy, Player searchingPlayer);
 
     /**
      * Fetch all items from all server shops
-     * @param toBuy
-     * @param searchingPlayer
-     * @return
+     * @param toBuy to buy or sell
+     * @param searchingPlayer the searching player
+     * @return CompletableFuture<List<FoundShopItemModel>>
      */
-    List<FoundShopItemModel> fetchAllItemsFromAllShops(boolean toBuy, Player searchingPlayer);
+    CompletableFuture<List<FoundShopItemModel>> fetchAllItemsFromAllShops(boolean toBuy, Player searchingPlayer);
 
     Material getShopSignMaterial();
 
-    Shop findShopAtLocation(Block block);
+    S findShopAtLocation(Block block);
 
-    boolean isShopOwnerCommandRunner(Player player, Shop shop);
+    boolean isShopOwnerCommandRunner(Player player, S shop);
 
-    List<Shop> getAllShops();
+    List<S> getAllShops();
 
     List<ShopSearchActivityModel> syncShopsListForStorage(List<ShopSearchActivityModel> globalShopsList);
 
     void registerSubCommand();
+
     UUID convertNameToUuid(String playerName);
 
     boolean isQSShopCacheImplemented();
@@ -108,9 +110,9 @@ public interface QSApi<QSType, Shop> {
                 shopsFoundList.sort(Comparator.comparing(FoundShopItemModel::getShopPrice));
             }
         }
-        if(FindItemAddOn.getConfigProvider().DEBUG_MODE)
-            shopsFoundList.forEach(foundShopItem ->
-                    Logger.logDebugInfo(QS_REMAINING_STOCK_OR_SPACE + foundShopItem.getRemainingStockOrSpace()));
+//        if(FindItemAddOn.getConfigProvider().isDebugModeEnabled())
+//            shopsFoundList.forEach(foundShopItem ->
+//                    Logger.logDebugInfo(QS_REMAINING_STOCK_OR_SPACE + foundShopItem.getRemainingStockOrSpace()));
         return shopsFoundList;
     }
 
@@ -122,12 +124,12 @@ public interface QSApi<QSType, Shop> {
 
     /**
      * Function to check if the time difference between two dates is greater than or equal to the specified seconds
-     * @param date1
-     * @param date2
-     * @param seconds
-     * @return
+     * @param date1 Date 1
+     * @param date2 Date 2
+     * @param seconds Seconds
+     * @return true if the time difference is greater than or equal to the specified seconds, false otherwise
      */
-    static boolean isTimeDifferenceGreaterThanSeconds(Date date1, Date date2, int seconds) {
+    static boolean isTimeDifferenceGreaterThanSeconds(@NotNull Date date1, @NotNull Date date2, int seconds) {
         Instant instant1 = date1.toInstant();
         Instant instant2 = date2.toInstant();
 

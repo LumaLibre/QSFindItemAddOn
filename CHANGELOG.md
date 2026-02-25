@@ -1,3 +1,24 @@
+## Release 2.0.8.0
+### Changes
+- QS-Reremake support has been dropped completely
+- GUI click is now async
+- Changed logger statements to show Main/Async thread state
+- Changed materials list in `LocationUtils` from `ArrayList` to `HashSet` to improve performance
+- Added debug mode control via command: `/finditemadmin debug-mode {enable | disable}`
+- Bumped Paper API version to `1.21.11-R0.1-SNAPSHOT`
+- Bumped Kyori's `adventure-api` to 4.26.1
+- Bumped `worldguard-bukkit` to 7.0.14
+- Bumped `playerwarps-api` to 7.9.0
+- Removed Spigot API dependency
+- Bumped `Quickshop-Hikari` to 6.2.0.11
+- Folia support [#91] by Jsinco
+
+### Known issues
+- Teleportation is broken on Folia servers
+
+### Bug fixes
+- Fixed a bug during loadShopsFromFile if one of the loaded shops was null by adding a null check
+
 ## Release 2.0.7.7
 ### Changes
 - Changed comma delimiter to triple pipe (PR #83 by @MattDeWeerd)

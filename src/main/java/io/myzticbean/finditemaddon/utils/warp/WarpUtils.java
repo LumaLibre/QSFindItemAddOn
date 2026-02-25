@@ -32,9 +32,7 @@ public class WarpUtils {
         if(FindItemAddOn.getConfigProvider().shopGUIItemLoreHasKey("{NEAREST_WARP}")) {
             if(FindItemAddOn.getConfigProvider().NEAREST_WARP_MODE == 1 && EssentialsXPlugin.isEnabled()) {
                 EssentialsXPlugin.updateAllWarps();
-
-            }
-            else if(FindItemAddOn.getConfigProvider().NEAREST_WARP_MODE == 2 && PlayerWarpsPlugin.getIsEnabled()) {
+            } else if(FindItemAddOn.getConfigProvider().NEAREST_WARP_MODE == 2 && PlayerWarpsPlugin.getIsEnabled()) {
                 PlayerWarpsPlugin.updateAllWarpsFromAPI();
             }
         }
