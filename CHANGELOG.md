@@ -11,6 +11,10 @@
 - Bumped `playerwarps-api` to 7.9.0
 - Removed Spigot API dependency
 - Bumped `Quickshop-Hikari` to 6.2.0.11
+- Folia support [#91] by Jsinco
+
+### Known issues
+- Teleportation is broken on Folia servers
 
 ### Bug fixes
 - Fixed a bug during loadShopsFromFile if one of the loaded shops was null by adding a null check

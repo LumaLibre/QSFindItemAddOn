@@ -62,6 +62,9 @@ public class Logger {
     }
 
     private static String getMainOrAsyncThreadLogText() {
+        if (FindItemAddOn.getFoliaLib().isFolia() && FindItemAddOn.getScheduler().isGlobalTickThread()) {
+            return "[global] ";
+        }
         return Bukkit.isPrimaryThread() ?
                 "[main] "
                 : "[" + isThreadVirtual() + Thread.currentThread().threadId() + "] ";

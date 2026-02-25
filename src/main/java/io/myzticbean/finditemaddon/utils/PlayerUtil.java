@@ -1,7 +1,8 @@
 package io.myzticbean.finditemaddon.utils;
 
 import io.myzticbean.finditemaddon.FindItemAddOn;
-import io.papermc.lib.PaperLib;
+import io.myzticbean.finditemaddon.utils.log.Logger;
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import me.kodysimpson.simpapi.colors.ColorTranslator;
 import org.bukkit.Bukkit;
@@ -10,16 +11,25 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 @UtilityClass
 public class PlayerUtil {
     public void sendMessage(HumanEntity player, String message) {
-        Bukkit.getScheduler().runTask(FindItemAddOn.getInstance(), () -> player.sendMessage(ColorTranslator.translateColorCodes(message)));
+        FindItemAddOn.getScheduler().runAtEntity(player, (t) -> player.sendMessage(ColorTranslator.translateColorCodes(message)));
     }
 
+    @SneakyThrows
     public void teleport(Player player, Location locToTeleport) {
-        PaperLib.teleportAsync(player, locToTeleport, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        // FindItemAddOn.getScheduler().teleportAsync(player, locToTeleport, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        // TODO: Teleportation not working on Folia servers, needs a fix
+        FindItemAddOn.getScheduler().runAtEntity(player, (t) ->
+                player
+                        .teleportAsync(locToTeleport, PlayerTeleportEvent.TeleportCause.PLUGIN)
+                        .thenAcceptAsync(isTeleported -> Logger.logDebugInfo("Player teleported to shop: " + isTeleported))
+
+        );
     }
 
     public boolean hasPermission(Player player, String permission) {
@@ -27,10 +37,9 @@ public class PlayerUtil {
             return player.hasPermission(permission);
         } else {
             try {
-                return Bukkit
-                        .getScheduler()
-                        .callSyncMethod(FindItemAddOn.getInstance(), () -> player.hasPermission(permission))
-                        .get();
+                CompletableFuture<Boolean> future = new CompletableFuture<>();
+                FindItemAddOn.getScheduler().runAtEntity(player, (t) -> future.complete(player.hasPermission(permission)));
+                return future.get();
             } catch (InterruptedException | ExecutionException e) {
                 Thread.currentThread().interrupt();
                 return false;

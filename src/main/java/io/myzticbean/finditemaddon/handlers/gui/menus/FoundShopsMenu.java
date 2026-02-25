@@ -20,12 +20,12 @@ package io.myzticbean.finditemaddon.handlers.gui.menus;
 
 import com.bekvon.bukkit.residence.protection.ClaimedResidence;
 import com.olziedev.playerwarps.api.warp.Warp;
+import io.myzticbean.finditemaddon.FindItemAddOn;
 import io.myzticbean.finditemaddon.config.ConfigProvider;
 import io.myzticbean.finditemaddon.dependencies.EssentialsXPlugin;
 import io.myzticbean.finditemaddon.dependencies.PlayerWarpsPlugin;
 import io.myzticbean.finditemaddon.dependencies.ResidencePlugin;
 import io.myzticbean.finditemaddon.dependencies.WGPlugin;
-import io.myzticbean.finditemaddon.FindItemAddOn;
 import io.myzticbean.finditemaddon.handlers.gui.PaginatedMenu;
 import io.myzticbean.finditemaddon.handlers.gui.PlayerMenuUtility;
 import io.myzticbean.finditemaddon.models.FoundShopItemModel;
@@ -332,8 +332,7 @@ public class FoundShopsMenu extends PaginatedMenu {
         if (!StringUtils.isEmpty(tpDelayMsg)) {
             PlayerUtil.sendMessage(player, configProvider.PLUGIN_PREFIX + replaceDelayPlaceholder(tpDelayMsg, delay));
         }
-        Bukkit.getScheduler().scheduleSyncDelayedTask(
-                FindItemAddOn.getInstance(),
+        FindItemAddOn.getScheduler().runLaterAsync(
                 () -> PlayerUtil.teleport(player, locToTeleport),
                 delay * 20);
     }
