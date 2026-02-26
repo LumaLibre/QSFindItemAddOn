@@ -22,14 +22,9 @@ public class PlayerUtil {
 
     @SneakyThrows
     public void teleport(Player player, Location locToTeleport) {
-        // FindItemAddOn.getScheduler().teleportAsync(player, locToTeleport, PlayerTeleportEvent.TeleportCause.PLUGIN);
-        // TODO: Teleportation not working on Folia servers, needs a fix
-        FindItemAddOn.getScheduler().runAtEntity(player, (t) ->
-                player
-                        .teleportAsync(locToTeleport, PlayerTeleportEvent.TeleportCause.PLUGIN)
-                        .thenAcceptAsync(isTeleported -> Logger.logDebugInfo("Player teleported to shop: " + isTeleported))
-
-        );
+        FindItemAddOn.getScheduler()
+                .teleportAsync(player, locToTeleport, PlayerTeleportEvent.TeleportCause.PLUGIN)
+                .thenAccept(isTeleported -> Logger.logDebugInfo("Player teleported to shop: " + isTeleported));
     }
 
     public boolean hasPermission(Player player, String permission) {
