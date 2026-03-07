@@ -465,5 +465,12 @@
             <version>3.7.3</version>
             <scope>provided</scope>
         </dependency>
+        <!-- For @Nullable on generics type -->
+        <dependency>
+            <groupId>org.jspecify</groupId>
+            <artifactId>jspecify</artifactId>
+            <version>1.0.0</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>

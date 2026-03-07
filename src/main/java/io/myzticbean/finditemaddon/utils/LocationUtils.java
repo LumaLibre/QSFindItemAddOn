@@ -26,13 +26,13 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -126,9 +126,10 @@ public class LocationUtils {
         nonSuffocatingBlocks.add(Material.PISTON_HEAD);
     }
 
-    @Nullable
-    public static Location findSafeLocationAroundShop(Location shopLocation, Player player) {
+
+    public static CompletableFuture<@org.jspecify.annotations.Nullable Location> findSafeLocationAroundShop(Location shopLocation, Player player) {
         Logger.logDebugInfo("Finding safe location around the shop");
+        CompletableFuture<@org.jspecify.annotations.Nullable Location> future = new CompletableFuture<>();
         Location roundedShopLoc = getRoundedDestination(shopLocation);
         Logger.logDebugInfo("Rounded location: " + roundedShopLoc.getX() + ", " + roundedShopLoc.getY() + ", " + roundedShopLoc.getZ());
         // Creating a list of four block locations in 4 sides of the shop
@@ -157,64 +158,23 @@ public class LocationUtils {
                 roundedShopLoc.getY(),
                 roundedShopLoc.getZ() - 1
         ));
-        for(Location possibleSafeLoc : possibleSafeLocList) {
-            Logger.logDebugInfo("Possible safe location: " + possibleSafeLoc.getX() + ", " + possibleSafeLoc.getY() + ", " + possibleSafeLoc.getZ());
-            if(possibleSafeLoc.getBlock().getType().equals(FindItemAddOn.getQsApiInstance().getShopSignMaterial())
-                || walledSignBlocks.contains(possibleSafeLoc.getBlock().getType())) {
-                Logger.logDebugInfo("Shop sign block found at " + possibleSafeLoc.getX() + ", " + possibleSafeLoc.getY() + ", " + possibleSafeLoc.getZ());
-                // Adding a check for a safe location check bypass permission
-                if(PlayerUtil.hasPermission(player, PlayerPermsEnum.FINDITEM_SHOPTP_BYPASS_SAFETYCHECK.value())) {
-                    Location blockBelow = new Location(
-                            possibleSafeLoc.getWorld(),
-                            possibleSafeLoc.getBlockX(),
-                            possibleSafeLoc.getBlockY() - 1,
-                            possibleSafeLoc.getBlockZ()
-                    );
-                    possibleSafeLoc = lookAt(getRoundedDestination(new Location(
-                                blockBelow.getWorld(),
-                                blockBelow.getX(),
-                                blockBelow.getY() + 1,
-                                blockBelow.getZ()
-                        )
-                    ), roundedShopLoc);
-                    return possibleSafeLoc;
-                }
-                // check if the block above is suffocating
-                Location blockAbove = new Location(
-                        possibleSafeLoc.getWorld(),
-                        possibleSafeLoc.getBlockX(),
-                        possibleSafeLoc.getBlockY() + 1,
-                        possibleSafeLoc.getBlockZ());
-                Logger.logDebugInfo("Block above shop sign: " + blockAbove.getX() + ", " + blockAbove.getY() + ", " + blockAbove.getZ());
-                if(!isBlockSuffocating(blockAbove)) {
-                    Location blockBelow = null;
-                    boolean safeLocFound = false;
-                    for(int i = 1; i <= BELOW_SAFE_BLOCK_CHECK_LIMIT; i++) {
-                        blockBelow = new Location(
+        for(Location finalPossibleSafeLoc : possibleSafeLocList) {
+            Logger.logDebugInfo("Possible safe location: " + finalPossibleSafeLoc.getX() + ", " + finalPossibleSafeLoc.getY() + ", " + finalPossibleSafeLoc.getZ());
+
+            FindItemAddOn.getScheduler().runAtLocation(finalPossibleSafeLoc, task -> {
+                Location possibleSafeLoc = finalPossibleSafeLoc;
+
+                if(possibleSafeLoc.getBlock().getType().equals(FindItemAddOn.getQsApiInstance().getShopSignMaterial())
+                        || walledSignBlocks.contains(possibleSafeLoc.getBlock().getType())) {
+                    Logger.logDebugInfo("Shop sign block found at " + possibleSafeLoc.getX() + ", " + possibleSafeLoc.getY() + ", " + possibleSafeLoc.getZ());
+                    // Adding a check for a safe location check bypass permission
+                    if(PlayerUtil.hasPermission(player, PlayerPermsEnum.FINDITEM_SHOPTP_BYPASS_SAFETYCHECK.value())) {
+                        Location blockBelow = new Location(
                                 possibleSafeLoc.getWorld(),
                                 possibleSafeLoc.getBlockX(),
-                                possibleSafeLoc.getBlockY() - i,
+                                possibleSafeLoc.getBlockY() - 1,
                                 possibleSafeLoc.getBlockZ()
                         );
-                        Logger.logDebugInfo("Block below shop sign: "
-                                + blockBelow.getBlock().getType() + " " + blockBelow.getX() + ", " + blockBelow.getY() + ", " + blockBelow.getZ());
-                        if(blockBelow.getBlock().getType().equals(Material.AIR)
-                            || blockBelow.getBlock().getType().equals(Material.CAVE_AIR)
-                            || blockBelow.getBlock().getType().equals(Material.VOID_AIR)
-                            || blockBelow.getBlock().getType().equals(FindItemAddOn.getQsApiInstance().getShopSignMaterial())) {
-                            // do nothing and let the loop run
-                            Logger.logDebugInfo("Shop or Air found below");
-                        }
-                        else if(!isBlockDamaging(blockBelow)) {
-                            Logger.logDebugInfo("Safe block found!");
-                            safeLocFound = true;
-                            break;
-                        }
-                        else {
-                            break;
-                        }
-                    }
-                    if(safeLocFound) {
                         possibleSafeLoc = lookAt(getRoundedDestination(new Location(
                                         blockBelow.getWorld(),
                                         blockBelow.getX(),
@@ -222,24 +182,74 @@ public class LocationUtils {
                                         blockBelow.getZ()
                                 )
                         ), roundedShopLoc);
-                        Logger.logDebugInfo("Safe location found: " + possibleSafeLoc.getX() + ", " + possibleSafeLoc.getY() + ", " + possibleSafeLoc.getZ());
-                        return possibleSafeLoc;
+                        future.complete(possibleSafeLoc);
+                        return;
+                    }
+                    // check if the block above is suffocating
+                    Location blockAbove = new Location(
+                            possibleSafeLoc.getWorld(),
+                            possibleSafeLoc.getBlockX(),
+                            possibleSafeLoc.getBlockY() + 1,
+                            possibleSafeLoc.getBlockZ());
+                    Logger.logDebugInfo("Block above shop sign: " + blockAbove.getX() + ", " + blockAbove.getY() + ", " + blockAbove.getZ());
+                    if(!isBlockSuffocating(blockAbove)) {
+                        Location blockBelow = null;
+                        boolean safeLocFound = false;
+                        for(int i = 1; i <= BELOW_SAFE_BLOCK_CHECK_LIMIT; i++) {
+                            blockBelow = new Location(
+                                    possibleSafeLoc.getWorld(),
+                                    possibleSafeLoc.getBlockX(),
+                                    possibleSafeLoc.getBlockY() - i,
+                                    possibleSafeLoc.getBlockZ()
+                            );
+                            Logger.logDebugInfo("Block below shop sign: "
+                                    + blockBelow.getBlock().getType() + " " + blockBelow.getX() + ", " + blockBelow.getY() + ", " + blockBelow.getZ());
+                            if(blockBelow.getBlock().getType().equals(Material.AIR)
+                                    || blockBelow.getBlock().getType().equals(Material.CAVE_AIR)
+                                    || blockBelow.getBlock().getType().equals(Material.VOID_AIR)
+                                    || blockBelow.getBlock().getType().equals(FindItemAddOn.getQsApiInstance().getShopSignMaterial())) {
+                                // do nothing and let the loop run
+                                Logger.logDebugInfo("Shop or Air found below");
+                            }
+                            else if(!isBlockDamaging(blockBelow)) {
+                                Logger.logDebugInfo("Safe block found!");
+                                safeLocFound = true;
+                                break;
+                            }
+                            else {
+                                break;
+                            }
+                        }
+                        if(safeLocFound) {
+                            possibleSafeLoc = lookAt(getRoundedDestination(new Location(
+                                            blockBelow.getWorld(),
+                                            blockBelow.getX(),
+                                            blockBelow.getY() + 1,
+                                            blockBelow.getZ()
+                                    )
+                            ), roundedShopLoc);
+                            Logger.logDebugInfo("Safe location found: " + possibleSafeLoc.getX() + ", " + possibleSafeLoc.getY() + ", " + possibleSafeLoc.getZ());
+                            future.complete(possibleSafeLoc);
+                            return;
+                        }
+                        else {
+                            future.complete(null);
+                            return;
+                        }
                     }
                     else {
-                        return null;
+                        Logger.logDebugInfo("Block above shop sign found not air. Block type: " + blockAbove.getBlock().getType());
+                        future.complete(null);
+                        return;
                     }
                 }
                 else {
-                    Logger.logDebugInfo("Block above shop sign found not air. Block type: " + blockAbove.getBlock().getType());
-                    return null;
+                    Logger.logDebugInfo("Block not shop sign. Block type: " + possibleSafeLoc.getBlock().getType());
                 }
-            }
-            else {
-                Logger.logDebugInfo("Block not shop sign. Block type: " + possibleSafeLoc.getBlock().getType());
-            }
+            });
         }
         Logger.logDebugInfo("No safe block found near shop");
-        return null;
+        return future;
     }
 
     // Found the below function from this thread: https://bukkit.org/threads/lookat-and-move-functions.26768/

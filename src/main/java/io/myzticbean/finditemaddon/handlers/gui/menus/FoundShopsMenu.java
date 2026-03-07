@@ -210,23 +210,24 @@ public class FoundShopsMenu extends PaginatedMenu {
             }
 
             // Find a safe location around the shop
-            Location locToTeleport = LocationUtils.findSafeLocationAroundShop(shopLocation, player);
-            if (locToTeleport == null) {
-                sendUnsafeAreaMessage(player);
-                return;
-            }
+            LocationUtils.findSafeLocationAroundShop(shopLocation, player).thenAccept(locToTeleport -> {
+                if (locToTeleport == null) {
+                    sendUnsafeAreaMessage(player);
+                    return;
+                }
 
-            // Record the visit and set last location for Essentials
-            ShopSearchActivityStorageUtil.addPlayerVisitEntryAsync(shopLocation, player);
-            if (EssentialsXPlugin.isEnabled())
-                EssentialsXPlugin.setLastLocation(player);
+                // Record the visit and set last location for Essentials
+                ShopSearchActivityStorageUtil.addPlayerVisitEntryAsync(shopLocation, player);
+                if (EssentialsXPlugin.isEnabled())
+                    EssentialsXPlugin.setLastLocation(player);
 
-            // Apply teleport delay if necessary, otherwise teleport immediately
-            if (shouldApplyTeleportDelay(player)) {
-                applyTeleportDelay(player, locToTeleport);
-            } else {
-                PlayerUtil.teleport(player, locToTeleport);
-            }
+                // Apply teleport delay if necessary, otherwise teleport immediately
+                if (shouldApplyTeleportDelay(player)) {
+                    applyTeleportDelay(player, locToTeleport);
+                } else {
+                    PlayerUtil.teleport(player, locToTeleport);
+                }
+            });
         });
     }
 
