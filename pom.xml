@@ -6,7 +6,7 @@
 
     <groupId>io.myzticbean.finditemaddon</groupId>
     <artifactId>QSFindItemAddOn</artifactId>
-    <version>2.0.8.0-SNAPSHOT-260308</version>
+    <version>2.0.8.0-RELEASE</version>
     <packaging>jar</packaging>
 
     <name>QSFindItemAddOn</name>
@@ -18,9 +18,9 @@
         <paper-api.version>1.21.11-R0.1-SNAPSHOT</paper-api.version>
         <qs-hikari.version>6.2.0.11</qs-hikari.version>
         <playerwarps-api-old>6.30.0</playerwarps-api-old>
-        <playerwarps-api-new>7.9.0</playerwarps-api-new>
-        <essentialsx.version>2.21.1</essentialsx.version>
-        <worldguard-bukkit.version>7.0.14</worldguard-bukkit.version>
+        <playerwarps-api-new>7.10.0</playerwarps-api-new>
+        <essentialsx.version>2.21.2</essentialsx.version>
+        <worldguard-bukkit.version>7.0.16</worldguard-bukkit.version>
         <jackson.version>2.21.0</jackson.version>
     </properties>
 
@@ -312,18 +312,18 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>com.olziedev</groupId>
-            <artifactId>playerwarps-api</artifactId>
-            <version>${playerwarps-api-old}</version>
-            <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.olziedev</groupId>-->
+<!--            <artifactId>playerwarps-api</artifactId>-->
+<!--            <version>${playerwarps-api-old}</version>-->
+<!--            <scope>provided</scope>-->
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <groupId>*</groupId>-->
+<!--                    <artifactId>*</artifactId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.olziedev</groupId>
             <artifactId>playerwarps-api</artifactId>
