@@ -6,7 +6,7 @@
 
     <groupId>io.myzticbean.finditemaddon</groupId>
     <artifactId>QSFindItemAddOn</artifactId>
-    <version>2.0.7.7-RELEASE</version>
+    <version>2.0.8.0-RELEASE</version>
     <packaging>jar</packaging>
 
     <name>QSFindItemAddOn</name>
@@ -15,12 +15,13 @@
     <properties>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spigot.version>1.21.8-R0.1-SNAPSHOT</spigot.version>
-        <qs-hikari.version>6.2.0.10</qs-hikari.version>
+        <paper-api.version>1.21.11-R0.1-SNAPSHOT</paper-api.version>
+        <qs-hikari.version>6.2.0.11</qs-hikari.version>
         <playerwarps-api-old>6.30.0</playerwarps-api-old>
-        <playerwarps-api-new>7.7.1</playerwarps-api-new>
-        <essentialsx.version>2.21.1</essentialsx.version>
-        <jackson.version>2.13.5</jackson.version>
+        <playerwarps-api-new>7.10.0</playerwarps-api-new>
+        <essentialsx.version>2.21.2</essentialsx.version>
+        <worldguard-bukkit.version>7.0.16</worldguard-bukkit.version>
+        <jackson.version>2.21.0</jackson.version>
     </properties>
 
     <ciManagement>
@@ -52,7 +53,6 @@
         </dependencies>
     </dependencyManagement>
 
-
     <build>
         <plugins>
             <plugin>
@@ -67,7 +67,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
+                <version>3.6.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -76,6 +76,16 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.tcoded.folialib</pattern>
+                                    <shadedPattern>io.myzticbean.finditemaddon.shaded.folialib</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.bstats</pattern>
+                                    <shadedPattern>io.myzticbean.finditemaddon.shaded.metrics</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -86,7 +96,7 @@
                 <version>2.3.1</version>
                 <configuration>
                     <!-- Below path is where your plugin jar will be copied automatically upon build, comment out if on a Mac -->
-                    <!-- <outputDirectory>D:\Github_myzticbean\MCServer_1.21\plugins</outputDirectory> -->
+                    <!-- <outputDirectory>D:\Github_myzticbean\MCServer_1.21_SNAPSHOT\plugins</outputDirectory> -->
                     <!-- Comment out if on a PC -->
                     <!-- <outputDirectory>/Users/${user.name}/IdeaProjects/MCServer_1.21/plugins</outputDirectory> -->
                 </configuration>
@@ -168,6 +178,10 @@
             <id>bentoboxworld</id>
             <url>https://repo.codemc.io/repository/bentoboxworld/</url>
         </repository>
+        <repository>
+            <id>tcoded-releases</id>
+            <url>https://repo.tcoded.com/releases</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -184,15 +198,21 @@
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>${spigot.version}</version>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>${paper-api.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>io.papermc</groupId>
-            <artifactId>paperlib</artifactId>
-            <version>1.0.7</version>
+            <groupId>com.tcoded</groupId>
+            <artifactId>FoliaLib</artifactId>
+            <version>0.5.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.bstats</groupId>
+            <artifactId>bstats-bukkit</artifactId>
+            <version>3.1.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -292,18 +312,18 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>com.olziedev</groupId>
-            <artifactId>playerwarps-api</artifactId>
-            <version>${playerwarps-api-old}</version>
-            <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.olziedev</groupId>-->
+<!--            <artifactId>playerwarps-api</artifactId>-->
+<!--            <version>${playerwarps-api-old}</version>-->
+<!--            <scope>provided</scope>-->
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <groupId>*</groupId>-->
+<!--                    <artifactId>*</artifactId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.olziedev</groupId>
             <artifactId>playerwarps-api</artifactId>
@@ -313,7 +333,7 @@
         <dependency>
             <groupId>com.sk89q.worldguard</groupId>
             <artifactId>worldguard-bukkit</artifactId>
-            <version>7.0.7</version>
+            <version>${worldguard-bukkit.version}</version>
             <scope>provided</scope>
             <exclusions>
                 <exclusion>
@@ -414,12 +434,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>net.kyori</groupId>
-            <artifactId>adventure-api</artifactId>
-            <version>4.16.0</version>
-            <scope>provided</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>net.kyori</groupId>-->
+<!--            <artifactId>adventure-api</artifactId>-->
+<!--            <version>4.16.0</version>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>cc.carm.lib</groupId>
             <artifactId>easysql-api</artifactId>
@@ -440,17 +460,17 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>me.ryanhamshire</groupId>
-            <artifactId>GPFlags</artifactId>
-            <version>5.13.4</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/GPFlags-5.13.4.jar</systemPath>
-        </dependency>
-        <dependency>
             <groupId>world.bentobox</groupId>
             <artifactId>bentobox</artifactId>
             <version>3.7.3</version>
             <scope>provided</scope>
+        </dependency>
+        <!-- For @Nullable on generics type -->
+        <dependency>
+            <groupId>org.jspecify</groupId>
+            <artifactId>jspecify</artifactId>
+            <version>1.0.0</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

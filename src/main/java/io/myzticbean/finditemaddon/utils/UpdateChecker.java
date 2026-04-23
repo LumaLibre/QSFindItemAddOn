@@ -24,7 +24,6 @@ import io.myzticbean.finditemaddon.utils.api.modrinth.ModrinthService;
 import io.myzticbean.finditemaddon.utils.async.VirtualThreadScheduler;
 import io.myzticbean.finditemaddon.utils.log.Logger;
 import me.kodysimpson.simpapi.colors.ColorTranslator;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 
@@ -61,18 +60,24 @@ public class UpdateChecker {
                 updateAvailabilityConsumer.accept(false);
                 return;
             }
-            var latestVersionDetails = projectVersions.getFirst();
-            if (latestVersionDetails == null || latestVersionDetails.getVersionNumber() == null) {
-                Logger.logWarning("Invalid version response from Modrinth");
+            var currentVersion = FindItemAddOn.getInstance().getDescription().getVersion();
+            boolean currentIsSnapshot = isSnapshotVersion(currentVersion);
+            var latestVersionDetails = projectVersions.stream()
+                    .filter(v -> v != null && v.getVersionNumber() != null)
+                    .filter(v -> isSnapshotVersion(v.getVersionNumber()) == currentIsSnapshot)
+                    .findFirst()
+                    .orElse(null);
+            if (latestVersionDetails == null) {
+                Logger.logWarning("No matching " + (currentIsSnapshot ? "snapshot" : "release")
+                        + " version found on Modrinth");
                 updateAvailabilityConsumer.accept(false);
                 return;
             }
             var latestVersion = latestVersionDetails.getVersionNumber();
-            var currentVersion = FindItemAddOn.getInstance().getDescription().getVersion();
             boolean isUpToDate = currentVersion.equals(latestVersion);
             updateAvailabilityConsumer.accept(!isUpToDate);
             if (!isUpToDate) {
-                if(latestVersion.toLowerCase().contains("snapshot")) {
+                if (currentIsSnapshot) {
                     Logger.logWarning("Plugin has a new snapshot version available! (Version: " + latestVersion + ")");
                 } else {
                     Logger.logWarning("Plugin has a new update available! (Version: " + latestVersion + ")");
@@ -82,9 +87,17 @@ public class UpdateChecker {
         });
     }
 
+    /**
+     * Determines if a version string represents a SNAPSHOT build.
+     * Expected formats: {@code 2.0.8.0-SNAPSHOT}, {@code 2.0.8.0-SNAPSHOT-<date>} or {@code 2.0.8.0-RELEASE}.
+     */
+    private static boolean isSnapshotVersion(String version) {
+        return version != null && version.toUpperCase().contains("-SNAPSHOT");
+    }
+
     @Deprecated(since = "v2.0.7.7")
     public void getLatestVersion(Consumer<String> consumer) {
-        Bukkit.getScheduler().runTaskAsynchronously(FindItemAddOn.getInstance(), () -> {
+        FindItemAddOn.getScheduler().runAsync((t) -> {
             try (
                     InputStream inputStream = new URL("https://api.spigotmc.org/legacy/update.php?resource=" + FindItemAddOn.getPluginID()).openStream();
                     Scanner scanner = new Scanner(inputStream)) {

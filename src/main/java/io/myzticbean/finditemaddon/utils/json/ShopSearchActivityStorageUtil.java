@@ -31,7 +31,6 @@ import me.kodysimpson.simpapi.colors.ColorTranslator;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,14 +43,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -65,7 +58,7 @@ public class ShopSearchActivityStorageUtil {
     private static final Map<String, Long> cooldowns = new HashMap<>();
 
     @Getter
-    private static List<ShopSearchActivityModel> globalShopsList = new ArrayList<>();
+    private static List<ShopSearchActivityModel> globalShopsList = new CopyOnWriteArrayList<>();
 
     /**
      * Returns true if cooldown is not present
@@ -168,37 +161,33 @@ public class ShopSearchActivityStorageUtil {
      * @param shop
      */
     public static void removeShop(com.ghostchu.quickshop.api.shop.Shop shop) {
-        Iterator<ShopSearchActivityModel> shopSearchActivityIterator = globalShopsList.iterator();
-        while(shopSearchActivityIterator.hasNext()) {
-            ShopSearchActivityModel shopSearchActivity = shopSearchActivityIterator.next();
-            if(shopSearchActivity.compareWith(
-                    shop.getLocation().getWorld().getName(),
-                    shop.getLocation().getX(),
-                    shop.getLocation().getY(),
-                    shop.getLocation().getZ()
-            )) {
-                shopSearchActivityIterator.remove();
-                return;
-            }
-        }
+        globalShopsList.removeIf(shopSearchActivity -> shopSearchActivity.compareWith(
+                shop.getLocation().getWorld().getName(),
+                shop.getLocation().getX(),
+                shop.getLocation().getY(),
+                shop.getLocation().getZ()
+        ));
     }
 
     public static void loadShopsFromFile() {
         Gson gson = new GsonBuilder().create();
-        File file = new File(FindItemAddOn.getInstance().getDataFolder().getAbsolutePath() + "/" + SHOP_SEARCH_ACTIVITY_JSON_FILE_NAME);
+        File file = new File(getShopJsonFilePath());
         if(file.exists()) {
             try {
                 Reader reader = new FileReader(file);
-                ShopSearchActivityModel[] h = gson.fromJson(reader, ShopSearchActivityModel[].class);
-                if(h != null) {
-                    globalShopsList = new ArrayList<>(Arrays.asList(h));
+                ShopSearchActivityModel[] shopsArray = gson.fromJson(reader, ShopSearchActivityModel[].class);
+                if(shopsArray != null) {
+                    // Filter out any null elements from the array
+                    globalShopsList = Arrays.stream(shopsArray)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
                 }
                 else {
-                    globalShopsList = new ArrayList<>();
+                    globalShopsList = new CopyOnWriteArrayList<>();
                 }
                 Logger.logInfo("Loaded shops from file");
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                Logger.logError("Failed to load shops from file", e);
             }
         }
         globalShopsList = FindItemAddOn.getQsApiInstance().syncShopsListForStorage(globalShopsList);
@@ -206,7 +195,7 @@ public class ShopSearchActivityStorageUtil {
 
     public static void saveShopsToFile() {
         Gson gson = new GsonBuilder().create();
-        File file = new File(FindItemAddOn.getInstance().getDataFolder().getAbsolutePath() + "/" + SHOP_SEARCH_ACTIVITY_JSON_FILE_NAME);
+        File file = new File(getShopJsonFilePath());
         file.getParentFile().mkdir();
         try {
             file.createNewFile();
@@ -216,8 +205,14 @@ public class ShopSearchActivityStorageUtil {
             writer.close();
             Logger.logInfo("Saved shops to file");
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.logError("Failed to save shops to file", e);
         }
+    }
+
+    private static @NotNull String getShopJsonFilePath() {
+        String path = FindItemAddOn.getInstance().getDataFolder().getAbsolutePath() + File.separator + SHOP_SEARCH_ACTIVITY_JSON_FILE_NAME;
+        Logger.logDebugInfo("shops.json file path: " + path);
+        return path;
     }
 
     public static void migrateHiddenShopsToShopsJson() {

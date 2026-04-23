@@ -4,6 +4,7 @@ main: io.myzticbean.finditemaddon.FindItemAddOn
 website: https://modrinth.com/plugin/shop-search
 api-version: 1.20
 authors: [ myzticbean ]
+folia-supported: true
 softdepend:
   - QuickShop
   - QuickShop-Hikari
