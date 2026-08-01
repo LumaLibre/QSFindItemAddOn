@@ -24,6 +24,7 @@ import com.ghostchu.quickshop.api.QuickShopAPI;
 import com.ghostchu.quickshop.api.command.CommandContainer;
 import com.ghostchu.quickshop.api.obj.QUser;
 import com.ghostchu.quickshop.api.shop.Shop;
+import com.ghostchu.quickshop.api.shop.cache.ShopInventoryCountCache;
 import com.ghostchu.quickshop.api.shop.permission.BuiltInShopPermission;
 import com.ghostchu.quickshop.util.Util;
 import io.myzticbean.finditemaddon.quickshop.QSApi;
@@ -49,6 +50,7 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -57,6 +59,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Implementation of QSApi for Hikari
@@ -65,6 +68,7 @@ import java.util.concurrent.ConcurrentMap;
 public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
 
     private static final int SHOP_CACHE_TIMEOUT_SECONDS = 5*60;
+    private static final int SHOP_INVENTORY_QUERY_TIMEOUT_SECONDS = 5; // TODO: configurable?
     private final QuickShopAPI api;
     private final String pluginVersion;
     private final ConcurrentMap<Long, CachedShop> shopCache;
@@ -81,7 +85,7 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
     public CompletableFuture<List<FoundShopItemModel>> findItemBasedOnTypeFromAllShops(ItemStack item, boolean toBuy, Player searchingPlayer) {
         var begin = Instant.now();
         return VirtualThreadScheduler.supplyAsync(() -> {
-            List<FoundShopItemModel> shopsFoundList = new ArrayList<>();
+            List<FoundShopItemModel> shopsFoundList = Collections.synchronizedList(new ArrayList<>());
             List<Shop> allShops = fetchAllShopsFromQS();
             Logger.logDebugInfo(QS_TOTAL_SHOPS_ON_SERVER + allShops.size());
             List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -90,7 +94,7 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
                         .thenAcceptAsync(isAuthorized -> {
                             if (isAuthorized.equals(Boolean.TRUE)
                                     // check for blacklisted worlds
-                                    && (!FindItemAddOn.getConfigProvider().getBlacklistedWorlds().contains(shopIterator.getLocation().getWorld())
+                                    && (!FindItemAddOn.getConfigProvider().getBlacklistedWorlds().contains(shopIterator.bukkitLocation().getWorld())
                                     && shopIterator.getItem().getType().equals(item.getType())
                                     && (toBuy ? shopIterator.isSelling() : shopIterator.isBuying()))
                                     // check for shop if hidden
@@ -110,7 +114,7 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
     public CompletableFuture<List<FoundShopItemModel>> findItemBasedOnDisplayNameFromAllShops(String displayName, boolean toBuy, Player searchingPlayer) {
         var begin = Instant.now();
         return VirtualThreadScheduler.supplyAsync(() -> {
-            List<FoundShopItemModel> shopsFoundList = new ArrayList<>();
+            List<FoundShopItemModel> shopsFoundList = Collections.synchronizedList(new ArrayList<>());
             List<Shop> allShops = fetchAllShopsFromQS();
             Logger.logDebugInfo(QS_TOTAL_SHOPS_ON_SERVER + allShops.size());
 
@@ -121,7 +125,7 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
                         .thenAcceptAsync(isAuthorized -> {
                             if (isAuthorized.equals(Boolean.TRUE)
                                     // check for blacklisted worlds
-                                    && !FindItemAddOn.getConfigProvider().getBlacklistedWorlds().contains(shopIterator.getLocation().getWorld())
+                                    && !FindItemAddOn.getConfigProvider().getBlacklistedWorlds().contains(shopIterator.bukkitLocation().getWorld())
                                     // match the item based on query
                                     && shopIterator.getItem().hasItemMeta()
                                     && Objects.requireNonNull(shopIterator.getItem().getItemMeta()).hasDisplayName()
@@ -144,7 +148,7 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
     public CompletableFuture<List<FoundShopItemModel>> fetchAllItemsFromAllShops(boolean toBuy, Player searchingPlayer) {
         var begin = Instant.now();
         return VirtualThreadScheduler.supplyAsync(() -> {
-            List<FoundShopItemModel> shopsFoundList = new ArrayList<>();
+            List<FoundShopItemModel> shopsFoundList = Collections.synchronizedList(new ArrayList<>());
             List<Shop> allShops = fetchAllShopsFromQS();
             Logger.logDebugInfo(QS_TOTAL_SHOPS_ON_SERVER + allShops.size());
             List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -153,7 +157,7 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
                         .thenAcceptAsync(isAuthorized -> {
                             if (isAuthorized.equals(Boolean.TRUE)
                                     // check for blacklisted worlds
-                                    && (!FindItemAddOn.getConfigProvider().getBlacklistedWorlds().contains(shopIterator.getLocation().getWorld())
+                                    && (!FindItemAddOn.getConfigProvider().getBlacklistedWorlds().contains(shopIterator.bukkitLocation().getWorld())
                                     && (toBuy ? shopIterator.isSelling() : shopIterator.isBuying()))
                                     // check for shop if hidden
                                     && (!HiddenShopStorageUtil.isShopHidden(shopIterator))) {
@@ -209,7 +213,12 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
             return true;
         }
 
-        double price = shop.getPrice();
+        if (!(shop.price() instanceof Double rawPrice)) {
+            Logger.logError("Unsupported currency for shop at " + shop.bukkitLocation());
+            return false;
+        }
+
+        double price = rawPrice;
         double itemAmount = shop.getItem().getAmount();
         double pricePerTransaction = price * itemAmount;
 
@@ -308,7 +317,7 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
         // now check shops from temp globalShopsList in current globalShopsList and pull playerVisit data
         List<ShopSearchActivityModel> tempGlobalShopsList = new ArrayList<>();
         getAllShops().forEach(shopItem -> {
-            Location shopLoc = shopItem.getLocation();
+            Location shopLoc = shopItem.bukkitLocation();
             tempGlobalShopsList.add(new ShopSearchActivityModel(
                     shopLoc.getWorld().getName(),
                     shopLoc.getX(),
@@ -375,15 +384,25 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
 
     @Override
     public int processUnknownStockSpace(Location shopLoc, boolean toBuy) {
-        // This process needs to run in MAIN thread
+        // QuickShop 6+ already tried its persisted cache during the async search. Calling the
+        // normal getters here can turn an unknown value into 0 when this is not the shop's region.
+        if (isQSHikariShopCacheImplemented) {
+            return -2;
+        }
+        // This legacy fallback needs to run in the MAIN thread.
         Util.ensureThread(false);
         Logger.logDebugInfo("Fetching stock/space from MAIN thread...");
         Shop qsShop = api.getShopManager().getShop(shopLoc);
-        if(qsShop != null) {
-            return (toBuy ? qsShop.getRemainingStock() : qsShop.getRemainingSpace());
-        } else {
+        if (qsShop == null) {
             return -2;
         }
+        if (qsShop.isUnlimited()) {
+            return -1;
+        }
+        if (!qsShop.isLoaded()) {
+            return -2;
+        }
+        return toBuy ? qsShop.getRemainingStock() : qsShop.getRemainingSpace();
     }
 
     private UUID convertQUserToUUID(QUser qUser) {
@@ -415,13 +434,53 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
     }
 
     private int getRemainingStockOrSpaceFromShopCache(Shop shop, boolean fetchRemainingStock) {
-        String mainVersionStr = pluginVersion.split("\\.")[0];
-        int mainVersion = Integer.parseInt(mainVersionStr);
-        if (mainVersion >= 6) {
-            // New feature available
+        if (isQSHikariShopCacheImplemented) {
             Util.ensureThread(true);
-            int stockOrSpace = (fetchRemainingStock ? shop.getRemainingStock() : shop.getRemainingSpace());
-            Logger.logDebugInfo("Stock/Space from cache: " + stockOrSpace);
+            if (shop.isUnlimited()) {
+                return -1;
+            }
+
+            // QSHikari 6.3.0.0-SNAPSHOT-12 shops can return 0 for unloaded chunks? Either way we have to do this ourselves for now
+            if (shop.isLoaded()) {
+                shopCache.remove(shop.getShopId());
+                int stockOrSpace = fetchLiveStockOrSpaceAtShopLocation(shop, fetchRemainingStock);
+                if (stockOrSpace != -2) {
+                    Logger.logDebugInfo("Stock/Space from loaded shop: " + stockOrSpace);
+                    return stockOrSpace;
+                }
+            }
+
+            CachedShop cachedShop = shopCache.get(shop.getShopId());
+            if (cachedShop == null || QSApi.isTimeDifferenceGreaterThanSeconds(
+                    cachedShop.getLastFetched(), new Date(), SHOP_CACHE_TIMEOUT_SECONDS)) {
+                try {
+                    ShopInventoryCountCache quickShopCache = api.getShopManager()
+                            .queryShopInventoryCacheInDatabase(shop)
+                            .orTimeout(SHOP_INVENTORY_QUERY_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                            .join();
+                    if (shop.isUnlimited()) {
+                        return -1;
+                    }
+                    cachedShop = CachedShop.builder()
+                            .shopId(shop.getShopId())
+                            .remainingStock(normalizeQuickShopCacheValue(quickShopCache, true))
+                            .remainingSpace(normalizeQuickShopCacheValue(quickShopCache, false))
+                            .lastFetched(new Date())
+                            .build();
+                    shopCache.put(cachedShop.getShopId(), cachedShop);
+                    Logger.logDebugInfo("Loaded inventory counts from QuickShop's database cache for shop "
+                            + shop.getShopId());
+                } catch (RuntimeException exception) {
+                    Logger.logError("Unable to read QuickShop's inventory cache for shop "
+                            + shop.getShopId(), exception);
+                    return -2;
+                }
+            }
+
+            int stockOrSpace = fetchRemainingStock
+                    ? cachedShop.getRemainingStock()
+                    : cachedShop.getRemainingSpace();
+            Logger.logDebugInfo("Stock/Space from database cache: " + stockOrSpace);
             return stockOrSpace;
         } else {
             // Show warning
@@ -442,6 +501,46 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
         }
     }
 
+    private int fetchLiveStockOrSpaceAtShopLocation(Shop shop, boolean fetchRemainingStock) {
+        CompletableFuture<Integer> result = new CompletableFuture<>();
+        try {
+            FindItemAddOn.getScheduler().runAtLocation(shop.bukkitLocation(), task -> {
+                try {
+                    if (!shop.isLoaded()) {
+                        result.complete(-2);
+                        return;
+                    }
+                    result.complete(fetchRemainingStock
+                            ? shop.getRemainingStock()
+                            : shop.getRemainingSpace());
+                } catch (RuntimeException exception) {
+                    result.completeExceptionally(exception);
+                }
+            });
+            return result
+                    .orTimeout(SHOP_INVENTORY_QUERY_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                    .exceptionally(exception -> {
+                        Logger.logDebugInfo("Unable to read live inventory for shop " + shop.getShopId() + ": " + exception.getMessage());
+                        return -2;
+                    })
+                    .join();
+        } catch (RuntimeException exception) {
+            Logger.logDebugInfo("Unable to schedule live inventory lookup for shop " + shop.getShopId() + ": " + exception.getMessage());
+            return -2;
+        }
+    }
+
+    private int normalizeQuickShopCacheValue(ShopInventoryCountCache cache, boolean fetchRemainingStock) {
+        if (!cache.initialized()) {
+            return -2;
+        }
+
+        int value = fetchRemainingStock ? cache.getStock() : cache.getSpace();
+        // hikari uses -1 for both unlimited shops and values that have never been calculated
+        // unlimited shops are handled before this method, so every negative value here is unknown
+        return value >= 0 ? value : -2;
+    }
+
     private boolean checkIfQSHikariShopCacheImplemented() {
         String mainVersionStr = pluginVersion.split("\\.")[0];
         int mainVersion = Integer.parseInt(mainVersionStr);
@@ -449,11 +548,11 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
     }
 
     private void processPotentialShopMatchAndAddToFoundList(boolean toBuy, Shop shopIterator, List<FoundShopItemModel> shopsFoundList, Player searchingPlayer) {
-        Logger.logDebugInfo("Shop match found: " + shopIterator.getLocation());
+        Logger.logDebugInfo("Shop match found: " + shopIterator.bukkitLocation());
         // Check if shop is in a locked BentoBox island
         if (FindItemAddOn.getConfigProvider().BENTOBOX_IGNORE_LOCKED_ISLAND_SHOPS
                 && Objects.nonNull(FindItemAddOn.getBentoboxPlugin())
-                && FindItemAddOn.getBentoboxPlugin().isIslandLocked(shopIterator.getLocation(), searchingPlayer)) {
+                && FindItemAddOn.getBentoboxPlugin().isIslandLocked(shopIterator.bukkitLocation(), searchingPlayer)) {
             Logger.logDebugInfo("Shop is in locked BentoBox island - ignoring");
             return;
         }
@@ -461,6 +560,7 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
         int stockOrSpace = (toBuy ? getRemainingStockOrSpaceFromShopCache(shopIterator, true)
                 : getRemainingStockOrSpaceFromShopCache(shopIterator, false));
         if(isShopToBeIgnoredForFullOrEmpty(stockOrSpace)) {
+            Logger.logDebugInfo("Shop is empty or full - ignoring");
             return;
         }
         // check if owner has enough balance for buying shops
@@ -468,13 +568,20 @@ public class QSHikariAPIHandler implements QSApi<QuickShopAPI, Shop> {
             Logger.logDebugInfo("Shop Owner is poor");
             return;
         }
+
+        if (!(shopIterator.price() instanceof Double price)) {
+            Logger.logError("Unsupported currency for shop at " + shopIterator.bukkitLocation());
+            return;
+        }
+
         shopsFoundList.add(new FoundShopItemModel(
-                shopIterator.getPrice(),
+                price,
                 QSApi.processStockOrSpace(stockOrSpace),
                 shopIterator.getOwner().getUniqueIdOptional().orElse(new UUID(0, 0)),
-                shopIterator.getLocation(),
+                shopIterator.bukkitLocation(),
                 shopIterator.getItem(),
                 toBuy
         ));
+        Logger.logDebugInfo("Shop added to found list: " + shopIterator.bukkitLocation());
     }
 }

@@ -13,15 +13,16 @@
     <inceptionYear>2021</inceptionYear>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <paper-api.version>1.21.11-R0.1-SNAPSHOT</paper-api.version>
-        <qs-hikari.version>6.2.0.11</qs-hikari.version>
+        <qs-hikari.version>6.3.0.0-SNAPSHOT-12</qs-hikari.version>
         <playerwarps-api-old>6.30.0</playerwarps-api-old>
         <playerwarps-api-new>7.10.0</playerwarps-api-new>
         <essentialsx.version>2.21.2</essentialsx.version>
         <worldguard-bukkit.version>7.0.16</worldguard-bukkit.version>
         <jackson.version>2.21.0</jackson.version>
+        <lombok.version>1.18.46</lombok.version>
     </properties>
 
     <ciManagement>
@@ -60,14 +61,21 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.10.1</version>
                 <configuration>
-                    <source>21</source>
-                    <target>21</target>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>3.6.2</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -409,7 +417,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.34</version>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
