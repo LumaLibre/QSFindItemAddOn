@@ -664,6 +664,6 @@ public class FoundShopsMenu extends PaginatedMenu {
                 .replace(CustomCmdPlaceholdersEnum.SHOP_LOC_X.value(), Double.toString(shopLoc.getX()))
                 .replace(CustomCmdPlaceholdersEnum.SHOP_LOC_Y.value(), Double.toString(shopLoc.getY()))
                 .replace(CustomCmdPlaceholdersEnum.SHOP_LOC_Z.value(), Double.toString(shopLoc.getZ()))
-                .replace(CustomCmdPlaceholdersEnum.SHOP_WORLD.value(), shopLoc.getWorld().getName());
+                .replace(CustomCmdPlaceholdersEnum.SHOP_WORLD.value(), shopLoc.getWorld().key().asString());
     }
 }
